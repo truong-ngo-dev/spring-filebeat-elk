@@ -7,14 +7,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    private final HeaderInterceptor headerInterceptor;
+    private final HttpMonitoringInterceptor httpMonitoringInterceptor;
 
-    public WebConfig(HeaderInterceptor headerInterceptor) {
-        this.headerInterceptor = headerInterceptor;
+    public WebConfig(HttpMonitoringInterceptor httpMonitoringInterceptor) {
+        this.httpMonitoringInterceptor = httpMonitoringInterceptor;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(headerInterceptor);
+        registry.addInterceptor(httpMonitoringInterceptor);
     }
 }

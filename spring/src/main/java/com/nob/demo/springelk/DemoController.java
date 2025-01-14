@@ -18,10 +18,17 @@ public class DemoController {
         return "All item";
     }
 
-    @GetMapping("/id")
-    public String getOne() {
+    @GetMapping("/{id}")
+    public String getOne(@PathVariable Long id) {
         log.info("[ITEM] fetching item, id");
         log.info("[ITEM] successfully fetch item");
+        return "One item";
+    }
+
+    @GetMapping("/detail")
+    public String getDetail() {
+        log.info("[DETAIL] fetching detail");
+        log.info("[DETAIL] successfully fetch detail");
         return "One item";
     }
 
