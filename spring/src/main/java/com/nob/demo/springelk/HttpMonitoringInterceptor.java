@@ -46,6 +46,7 @@ public class HttpMonitoringInterceptor extends RequestBodyAdviceAdapter implemen
         MDC.put(CLIENT_MESSAGE_ID, header.getClientMessageId());
         MDC.put(TRACE_ID, header.getTraceId());
         MDC.put(LOG_TYPE, "Request");
+        log.info("Receive request with uri: {}", request.getRequestURI() + "?" + request.getQueryString());
         return true;
     }
 
@@ -53,12 +54,13 @@ public class HttpMonitoringInterceptor extends RequestBodyAdviceAdapter implemen
     @SuppressWarnings("all")
     public Object afterBodyRead(@NonNull Object body, @NonNull HttpInputMessage inputMessage, @NonNull MethodParameter parameter, @NonNull Type targetType, @NonNull Class<? extends HttpMessageConverter<?>> converterType) {
         ServiceHeader header = null;
+        String json = null;
         try {
-            String json = JsonUtils.toJson(body);
-            log.info(json);
+            json = JsonUtils.toJson(body);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+        log.info("Request body: {}", json);
         return super.afterBodyRead(body, inputMessage, parameter, targetType, converterType);
     }
 
@@ -67,7 +69,10 @@ public class HttpMonitoringInterceptor extends RequestBodyAdviceAdapter implemen
         ServiceHeader header;
         try {
             header = JsonUtils.fromJson(MDC.get(SERVICE_HEADER), ServiceHeader.class);
-            response.setHeader(CLIENT_MESSAGE_ID, header.getClientMessageId());
+            assert header != null;
+            response.addHeader(CLIENT_MESSAGE_ID, header.getClientMessageId());
+            response.addHeader(TRACE_ID, header.getTraceId());
+            log.info("Return response with status: {}", response.getStatus());
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -86,14 +91,15 @@ public class HttpMonitoringInterceptor extends RequestBodyAdviceAdapter implemen
     @Override
     public Object beforeBodyWrite(Object body, @NonNull MethodParameter returnType, @NonNull MediaType selectedContentType, @NonNull Class<? extends HttpMessageConverter<?>> selectedConverterType, @NonNull ServerHttpRequest request, @NonNull ServerHttpResponse response) {
         if (Objects.nonNull(body)) {
+            String json = null;
             try {
-                String json = JsonUtils.toJson(sanitizeByteArrayFields(body));
-                MDC.remove(LOG_TYPE);
-                MDC.put(LOG_TYPE, "Response");
-                log.info(json);
+                json = JsonUtils.toJson(sanitizeByteArrayFields(body));
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
+            MDC.remove(LOG_TYPE);
+            MDC.put(LOG_TYPE, "Response");
+            log.info("Response body: {}", json);
         }
         return null;
     }
