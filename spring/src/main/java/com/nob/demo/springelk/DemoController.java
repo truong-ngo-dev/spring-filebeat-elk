@@ -13,8 +13,8 @@ public class DemoController {
 
     @GetMapping("/")
     public String getAll() {
-        log.info("[ALL ITEM] fetching all items from database");
-        log.info("[ALL ITEM] fetch all items completed");
+        log.debug("[ALL ITEM] fetching all items from database");
+        log.error("[ALL ITEM] fetch all items completed");
         return "All item";
     }
 

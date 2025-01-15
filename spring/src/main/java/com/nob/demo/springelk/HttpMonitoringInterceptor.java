@@ -1,6 +1,8 @@
 package com.nob.demo.springelk;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nob.utils.JsonUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,6 +22,8 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdviceAd
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 import java.lang.reflect.Type;
+import java.util.Map;
+import java.util.Objects;
 
 @Component
 public class HttpMonitoringInterceptor extends RequestBodyAdviceAdapter implements HandlerInterceptor, ResponseBodyAdvice<Object> {
@@ -81,15 +85,33 @@ public class HttpMonitoringInterceptor extends RequestBodyAdviceAdapter implemen
 
     @Override
     public Object beforeBodyWrite(Object body, @NonNull MethodParameter returnType, @NonNull MediaType selectedContentType, @NonNull Class<? extends HttpMessageConverter<?>> selectedConverterType, @NonNull ServerHttpRequest request, @NonNull ServerHttpResponse response) {
-        ServiceHeader header;
-        try {
-            String json = JsonUtils.toJson(body);
-            MDC.remove(LOG_TYPE);
-            MDC.put(LOG_TYPE, "Response");
-            log.info(json);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+        if (Objects.nonNull(body)) {
+            try {
+                String json = JsonUtils.toJson(sanitizeByteArrayFields(body));
+                MDC.remove(LOG_TYPE);
+                MDC.put(LOG_TYPE, "Response");
+                log.info(json);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         }
         return null;
+    }
+
+    private Object sanitizeByteArrayFields(Object body) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> map = mapper.convertValue(body, new TypeReference<>() {});
+            map.replaceAll((key, value) -> {
+                if (value instanceof byte[]) {
+                    return "binary data omitted";
+                }
+                return value;
+            });
+            return map;
+        } catch (IllegalArgumentException e) {
+            log.error("Error sanitizing byte array fields: {}", e.getMessage(), e);
+            return body;
+        }
     }
 }
