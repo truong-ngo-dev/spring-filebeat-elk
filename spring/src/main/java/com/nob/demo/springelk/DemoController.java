@@ -15,7 +15,8 @@ public class DemoController {
     public String getAll() {
         log.debug("[ALL ITEM] fetching all items from database");
         log.error("[ALL ITEM] fetch all items completed");
-        return "All item";
+//        return "All item";
+        throw new RuntimeException("An error occurred");
     }
 
     @GetMapping("/{id}")

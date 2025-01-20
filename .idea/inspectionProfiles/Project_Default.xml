@@ -5,6 +5,7 @@
       <option name="customHeaders">
         <set>
           <option value="clientMessageId" />
+          <option value="traceId" />
         </set>
       </option>
     </inspection_tool>

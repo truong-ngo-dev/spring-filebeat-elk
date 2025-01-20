@@ -11,6 +11,10 @@ filebeat.autodiscover:
               format: docker
               paths:
                 - "/var/lib/docker/containers/${data.docker.container.id}/*.log"
+              multiline:
+                pattern: '^\d{2}-\d{2}-\d{4} \d{2}:\d{2}:\d{2}\.\d{3}'
+                negate: true
+                match: after
               processors:
                 - decode_json_fields:
                     when.equals:

@@ -17,6 +17,7 @@ import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdviceAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
@@ -26,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Component
+@RestControllerAdvice
 public class HttpMonitoringInterceptor extends RequestBodyAdviceAdapter implements HandlerInterceptor, ResponseBodyAdvice<Object> {
 
     private static final Logger log = LoggerFactory.getLogger(HttpMonitoringInterceptor.class);
